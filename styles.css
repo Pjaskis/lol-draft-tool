@@ -249,3 +249,99 @@ h1 {
     background-color: rgba(200, 170, 110, 0.1);
 }
 
+/* --- NEW: Active Draft Dashboard --- */
+.active-draft-panel {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.flex-picks-container, .locked-team-container {
+    background-color: #1e2328;
+    border: 1px solid #c8aa6e;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.flex-picks-container {
+    flex: 1;
+}
+
+.locked-team-container {
+    flex: 3;
+}
+
+.active-draft-panel h3 {
+    margin-top: 0;
+    color: #f0e6d2;
+    font-size: 16px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.flex-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.locked-team {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 80px;
+}
+
+.locked-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #a09b8c;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.locked-slot img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #0ac8b9;
+    margin-bottom: 5px;
+    box-shadow: 0 0 10px rgba(10, 200, 185, 0.4);
+}
+
+.empty-slot {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px dashed #333;
+    margin-bottom: 5px;
+}
+
+/* Action Buttons Container for Lists */
+.champ-actions {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-lock {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.5;
+    transition: 0.2s;
+}
+
+.btn-lock:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Hide Lock buttons in edit mode to keep it clean */
+.edit-mode .btn-lock {
+    display: none; 
+}

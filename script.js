@@ -130,39 +130,82 @@ function loadStrategy() {
     const strategy = teamData[selectedKey];
     document.getElementById('strategy-desc').innerText = strategy.description || "Click here to add a description...";
 
+    // --- NEW: Calculate Flex Picks ---
+    let allPicks = [];
+    const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
+    
+    standardRoles.forEach(role => {
+        if (strategy.roles && strategy.roles[role] && strategy.roles[role].picks) {
+            allPicks = allPicks.concat(strategy.roles[role].picks);
+        }
+    });
+
+    // Find duplicates (champions that appear in more than 1 role)
+    const flexChamps = allPicks.filter((item, index) => allPicks.indexOf(item) !== index);
+    const uniqueFlexChamps = [...new Set(flexChamps)]; // Remove triple duplicates
+
+    // Render Flex Options
+    const flexContainer = document.getElementById('flex-picks-list');
+    flexContainer.innerHTML = uniqueFlexChamps.map(champ => 
+        `<img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" title="${champ} is a Flex!" style="border-color: #fe3c72;">`
+    ).join('') || "<span style='color: #666; font-size: 12px;'>No flex picks yet.</span>";
+
+    // --- NEW: Render Locked Team ---
+    const lockedContainer = document.getElementById('locked-team');
+    lockedContainer.innerHTML = "";
+    
+    // Ensure the locked object exists in Firebase
+    if (!strategy.lockedTeam) strategy.lockedTeam = {};
+
+    standardRoles.forEach(role => {
+        const lockedChamp = strategy.lockedTeam[role];
+        if (lockedChamp) {
+            lockedContainer.innerHTML += `
+                <div class="locked-slot">
+                    <img src="${getChampImageURL(lockedChamp)}" alt="${lockedChamp}">
+                    ${lockedChamp}
+                </div>`;
+        } else {
+            lockedContainer.innerHTML += `
+                <div class="locked-slot">
+                    <div class="empty-slot"></div>
+                    ${role}
+                </div>`;
+        }
+    });
+
+    // --- Render The Main Board ---
     const board = document.getElementById('draft-board');
     board.innerHTML = ""; 
     
     if (isEditMode) board.classList.add('edit-mode');
     else board.classList.remove('edit-mode');
 
-    // --- THE FIX ---
-    // We hardcode the 5 roles so the boxes ALWAYS draw, even if Firebase deleted the empty data!
-    const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
-
     standardRoles.forEach(roleName => {
-        // Safely check if Firebase returned data for this role, otherwise use an empty object
         const roleData = (strategy.roles && strategy.roles[roleName]) ? strategy.roles[roleName] : {};
         
-        // Grab the arrays, or use empty arrays if Firebase deleted them
         let picksArray = roleData.picks || [];
         let bansArray = roleData.bans || [];
 
-        // Render Picks
+        // Updated Picks with Lock Button
         let picksHTML = picksArray.map(champ => `
             <li>
                 <img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
                 ${champ}
-                <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'picks', '${champ}')">❌</button>
+                <div class="champ-actions">
+                    <button class="btn-lock" title="Lock In" onclick="lockChamp('${selectedKey}', '${roleName}', '${champ}')">🔒</button>
+                    <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'picks', '${champ}')">❌</button>
+                </div>
             </li>
         `).join('');
 
-        // Render Bans
         let bansHTML = bansArray.map(champ => `
             <li>
                 <img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
                 <s>${champ}</s>
-                <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'bans', '${champ}')">❌</button>
+                <div class="champ-actions">
+                    <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'bans', '${champ}')">❌</button>
+                </div>
             </li>
         `).join('');
 
@@ -190,6 +233,22 @@ function loadStrategy() {
 
 // --- 6. ATTACH FUNCTIONS TO WINDOW (Needed for ES Modules) ---
 window.loadStrategy = loadStrategy;
+
+// --- NEW: Lock Champion Function ---
+window.lockChamp = function(strategyKey, role, champName) {
+    if (!teamData[strategyKey].lockedTeam) {
+        teamData[strategyKey].lockedTeam = {};
+    }
+
+    // If they click the lock again, it unlocks them
+    if (teamData[strategyKey].lockedTeam[role] === champName) {
+        teamData[strategyKey].lockedTeam[role] = null;
+    } else {
+        teamData[strategyKey].lockedTeam[role] = champName;
+    }
+    
+    saveData(); // Push to Firebase immediately
+};
 
 window.toggleEditMode = function() {
     isEditMode = !isEditMode;
