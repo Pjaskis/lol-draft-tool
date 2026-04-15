@@ -345,3 +345,41 @@ h1 {
 .edit-mode .btn-lock {
     display: none; 
 }
+
+/* --- UPDATED: Cleaner Tier List Tags --- */
+.tier-tag {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    
+    /* NEW: A blocky, clean esports font */
+    font-family: 'Arial Black', 'Segoe UI Black', Impact, sans-serif; 
+    font-size: 13px;
+    
+    /* NEW: Unified, crisp dark color for all letters */
+    color: #0a1428; 
+    margin-right: 8px;
+    
+    /* Replaced heavy shadows with a very subtle, clean border */
+    border: 1px solid rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* NEW: Flat, vibrant colors instead of messy gradients */
+.tier-S { background-color: #ff5858; } /* Vibrant Red */
+.tier-A { background-color: #ffb443; } /* Vibrant Orange */
+.tier-B { background-color: #f6d365; } /* Vibrant Gold */
+
+.tier-select {
+    padding: 5px;
+    background: #1e2328;
+    border: 1px solid #c8aa6e;
+    color: #f0e6d2;
+    border-radius: 3px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Arial Black', sans-serif; /* Match the dropdown font too */
+}
