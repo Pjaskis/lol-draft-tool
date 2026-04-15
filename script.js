@@ -125,22 +125,30 @@ function loadStrategy() {
     const dropdown = document.getElementById('strategy-dropdown');
     const selectedKey = dropdown.value;
     
-    // Safety check in case database hasn't loaded yet
     if (!selectedKey || !teamData[selectedKey]) return; 
 
     const strategy = teamData[selectedKey];
-    document.getElementById('strategy-desc').innerText = strategy.description;
+    document.getElementById('strategy-desc').innerText = strategy.description || "Click here to add a description...";
 
     const board = document.getElementById('draft-board');
     board.innerHTML = ""; 
     
-    if(isEditMode) board.classList.add('edit-mode');
+    if (isEditMode) board.classList.add('edit-mode');
     else board.classList.remove('edit-mode');
 
-    for (const [roleName, roleData] of Object.entries(strategy.roles)) {
+    // --- THE FIX ---
+    // We hardcode the 5 roles so the boxes ALWAYS draw, even if Firebase deleted the empty data!
+    const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
+
+    standardRoles.forEach(roleName => {
+        // Safely check if Firebase returned data for this role, otherwise use an empty object
+        const roleData = (strategy.roles && strategy.roles[roleName]) ? strategy.roles[roleName] : {};
         
-        // Render Picks (Check if array exists, if not use empty array)
+        // Grab the arrays, or use empty arrays if Firebase deleted them
         let picksArray = roleData.picks || [];
+        let bansArray = roleData.bans || [];
+
+        // Render Picks
         let picksHTML = picksArray.map(champ => `
             <li>
                 <img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
@@ -150,7 +158,6 @@ function loadStrategy() {
         `).join('');
 
         // Render Bans
-        let bansArray = roleData.bans || [];
         let bansHTML = bansArray.map(champ => `
             <li>
                 <img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
@@ -178,7 +185,7 @@ function loadStrategy() {
             </div>
         `;
         board.innerHTML += cardHTML;
-    }
+    });
 }
 
 // --- 6. ATTACH FUNCTIONS TO WINDOW (Needed for ES Modules) ---
@@ -234,17 +241,26 @@ window.createNewStrategy = function() {
         name: stratName,
         description: "Click here to add a description...",
         roles: {
-            Top: { picks: ["Sett"], bans: ["Riven"] },
-            Jungle: { picks: ["Nocturne"], bans: ["Viego"] },
-            Mid: { picks: ["Aurora"], bans: ["Malzahar"] },
-            ADC: { picks: ["Yunara"], bans: ["Caitlyn"] },
-            Support: { picks: ["Alistar"], bans: ["Yuumi"] }
+            Top: { picks: [], bans: [] },
+            Jungle: { picks: [], bans: [] },
+            Mid: { picks: [], bans: [] },
+            ADC: { picks: [], bans: [] },
+            Support: { picks: [], bans: [] }
         }
     };
     saveData();
     
+    // --- THE FIX IS HERE ---
+    // Automatically turn on Edit Mode so they see the input boxes!
+    if (!isEditMode) {
+        window.toggleEditMode();
+    }
+    
     // Swap dropdown to the new strategy once Firebase updates
-    setTimeout(() => { document.getElementById('strategy-dropdown').value = stratKey; loadStrategy(); }, 300);
+    setTimeout(() => { 
+        document.getElementById('strategy-dropdown').value = stratKey; 
+        loadStrategy(); 
+    }, 300);
 };
 
 window.deleteCurrentStrategy = function() {
