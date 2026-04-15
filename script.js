@@ -431,17 +431,20 @@ window.openPatchNotes = async function() {
 
         const commits = await response.json();
         
-        // Grab the 5 most recent commits and turn them into HTML
-        listContainer.innerHTML = commits.slice(0, 5).map(commit => {
-            // Format the date to look nice (e.g., "Oct 24, 2023")
+        // UPGRADE 1: Changed slice(0, 5) to slice(0, 20) to show more history!
+        listContainer.innerHTML = commits.slice(0, 20).map(commit => {
             const dateStr = new Date(commit.commit.author.date).toLocaleDateString(undefined, { 
                 month: 'short', day: 'numeric', year: 'numeric' 
             });
             
+            // UPGRADE 2: Replace invisible line breaks (\n) with actual HTML line breaks (<br>)
+            // This allows you to type multi-line descriptions in GitHub and have them format beautifully here.
+            const formattedMessage = commit.commit.message.replace(/\n/g, '<br>');
+            
             return `
                 <div class="commit-item">
                     <div class="commit-date">📅 ${dateStr}</div>
-                    <div class="commit-msg">${commit.commit.message}</div>
+                    <div class="commit-msg">${formattedMessage}</div>
                 </div>
             `;
         }).join('');
