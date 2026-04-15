@@ -410,6 +410,63 @@ window.deleteCurrentStrategy = function() {
     }
 };
 
+// --- NEW: Patch Notes GitHub API Fetch ---
+window.openPatchNotes = async function() {
+    // Show the modal
+    document.getElementById('patch-notes-modal').style.display = 'flex';
+    const listContainer = document.getElementById('patch-notes-list');
+    listContainer.innerHTML = "<p style='text-align:center;'>Fetching latest updates from central server...</p>";
+
+    // --- CHANGE THESE TO YOUR GITHUB DETAILS ---
+    const githubUser = "Pjaskis"; // e.g. "Pjaskis"
+    const githubRepo = "lol-draft-tool";       // e.g. "lol-draft-tool"
+    // -------------------------------------------
+
+    try {
+        const response = await fetch(`https://api.github.com/repos/${githubUser}/${githubRepo}/commits`);
+        
+        if (!response.ok) {
+            throw new Error("Could not connect to GitHub (Is the repo Private?)");
+        }
+
+        const commits = await response.json();
+        
+        // Grab the 5 most recent commits and turn them into HTML
+        listContainer.innerHTML = commits.slice(0, 5).map(commit => {
+            // Format the date to look nice (e.g., "Oct 24, 2023")
+            const dateStr = new Date(commit.commit.author.date).toLocaleDateString(undefined, { 
+                month: 'short', day: 'numeric', year: 'numeric' 
+            });
+            
+            return `
+                <div class="commit-item">
+                    <div class="commit-date">📅 ${dateStr}</div>
+                    <div class="commit-msg">${commit.commit.message}</div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        listContainer.innerHTML = `
+            <p style="color: #e22c2c; text-align: center;">
+                <b>Error reading Patch Notes.</b><br>
+                Make sure your GitHub repository is set to "Public" in the repository settings!
+            </p>`;
+    }
+};
+
+window.closePatchNotes = function() {
+    document.getElementById('patch-notes-modal').style.display = 'none';
+};
+
+// Optional QoL: Close modal if they click the dark background outside the box
+window.onclick = function(event) {
+    const modal = document.getElementById('patch-notes-modal');
+    if (event.target === modal) {
+        window.closePatchNotes();
+    }
+};
+
 window.editDescription = function() {
     const selectedKey = document.getElementById('strategy-dropdown').value;
     const currentDesc = teamData[selectedKey].description;

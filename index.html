@@ -18,6 +18,7 @@
             <div class="strat-management">
                 <button class="btn-manage new" onclick="createNewStrategy()">➕ New Strategy</button>
                 <button class="btn-manage delete" onclick="deleteCurrentStrategy()">🗑️ Delete Strategy</button>
+                <button class="btn-manage" style="color: #a09b8c;" onclick="openPatchNotes()">📝 Patch Notes</button>
             </div>
 
             <div class="header-controls">
@@ -54,6 +55,22 @@
     </div>
 
     <datalist id="champion-names"></datalist>
+
+    <div id="patch-notes-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePatchNotes()">❌</span>
+            <h2>🛠️ RIME Patch Notes</h2>
+            <div id="patch-notes-list">
+                <p>Loading server data...</p>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="champion-names"></datalist>
+
+    <script type="module" src="script.js" defer></script>
+</body>
+</html>
 
     <script type="module" src="script.js" defer></script>
 </body>
