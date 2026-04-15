@@ -369,9 +369,12 @@ h1 {
 }
 
 /* NEW: Flat, vibrant colors instead of messy gradients */
+/* --- UPDATED: Tier List Colors --- */
 .tier-S { background-color: #ff5858; } /* Vibrant Red */
 .tier-A { background-color: #ffb443; } /* Vibrant Orange */
 .tier-B { background-color: #f6d365; } /* Vibrant Gold */
+.tier-C { background-color: #85e085; } /* Vibrant Green */
+.tier-D { background-color: #8cb4ff; } /* Vibrant Blue */
 
 .tier-select {
     padding: 5px;

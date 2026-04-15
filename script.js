@@ -130,13 +130,12 @@ function loadStrategy() {
     const strategy = teamData[selectedKey];
     document.getElementById('strategy-desc').innerText = strategy.description || "Click here to add a description...";
 
-    // Calculate Flex Picks (Upgraded for Tier Objects)
+    // Calculate Flex Picks
     let allPicks = [];
     const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
     
     standardRoles.forEach(role => {
         if (strategy.roles && strategy.roles[role] && strategy.roles[role].picks) {
-            // Extract just the names, whether they are old strings or new Tier Objects
             const namesOnly = strategy.roles[role].picks.map(c => typeof c === 'string' ? c : c.name);
             allPicks = allPicks.concat(namesOnly);
         }
@@ -182,12 +181,11 @@ function loadStrategy() {
     standardRoles.forEach(roleName => {
         const roleData = (strategy.roles && strategy.roles[roleName]) ? strategy.roles[roleName] : {};
         
-        // Copy the array so we can sort it safely
         let picksArray = roleData.picks ? [...roleData.picks] : [];
         let bansArray = roleData.bans || [];
 
-        // NEW: Automatically sort picks by Tier (S -> A -> B -> Old Data)
-        const tierOrder = { "S": 1, "A": 2, "B": 3, "": 4 };
+        // --- UPGRADE: Added C and D to the sorting logic ---
+        const tierOrder = { "S": 1, "A": 2, "B": 3, "C": 4, "D": 5, "": 6 };
         picksArray.sort((a, b) => {
             const tierA = typeof a === 'string' ? "" : a.tier;
             const tierB = typeof b === 'string' ? "" : b.tier;
@@ -195,27 +193,24 @@ function loadStrategy() {
         });
 
         // Generate HTML for Picks
-        // Generate HTML for Picks
         let picksHTML = picksArray.map(champObj => {
-            // Handle backwards compatibility for old string data
             let champName = typeof champObj === 'string' ? champObj : champObj.name;
             let tier = typeof champObj === 'string' ? '' : champObj.tier;
             
             let tierHTML = '';
 
-            // --- THE UPGRADE: Editable Tiers ---
+            // --- UPGRADE: Added C and D to the edit dropdown ---
             if (isEditMode) {
-                // If in edit mode, show a dropdown pre-selected to their current tier
-                // If they don't have a tier (old data), default it to A visually
                 let activeTier = tier || 'A';
                 tierHTML = `
                 <select class="tier-edit-select tier-${activeTier}" onchange="updateTier('${selectedKey}', '${roleName}', '${champName}', this.value)">
                     <option value="S" ${activeTier === 'S' ? 'selected' : ''}>S</option>
                     <option value="A" ${activeTier === 'A' ? 'selected' : ''}>A</option>
                     <option value="B" ${activeTier === 'B' ? 'selected' : ''}>B</option>
+                    <option value="C" ${activeTier === 'C' ? 'selected' : ''}>C</option>
+                    <option value="D" ${activeTier === 'D' ? 'selected' : ''}>D</option>
                 </select>`;
             } else if (tier) {
-                // If not in edit mode, just show the normal static badge
                 tierHTML = `<span class="tier-tag tier-${tier}">${tier}</span>`;
             }
 
@@ -239,6 +234,7 @@ function loadStrategy() {
                 </div>
             </li>`).join('');
 
+        // --- UPGRADE: Added C and D to the "Add Champ" dropdown ---
         const cardHTML = `
             <div class="role-card">
                 <h2>${roleName}</h2>
@@ -250,6 +246,8 @@ function loadStrategy() {
                         <option value="S">S</option>
                         <option value="A" selected>A</option>
                         <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
                     </select>
                     <input type="text" list="champion-names" id="add-pick-${roleName}" placeholder="Add Pick...">
                     <button onclick="addChamp('${selectedKey}', '${roleName}', 'picks', 'add-pick-${roleName}', 'add-tier-${roleName}')">+</button>
