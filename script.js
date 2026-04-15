@@ -209,17 +209,24 @@ window.addChamp = function(strategyKey, role, listType, inputId) {
     const newChamp = inputEle.value.trim();
     if (!newChamp) return; 
 
-    // Initialize array if it somehow doesn't exist
+    // --- THE FIX: Rebuild the data structure if Firebase deleted it ---
+    if (!teamData[strategyKey].roles) {
+        teamData[strategyKey].roles = {};
+    }
+    if (!teamData[strategyKey].roles[role]) {
+        teamData[strategyKey].roles[role] = {};
+    }
     if (!teamData[strategyKey].roles[role][listType]) {
         teamData[strategyKey].roles[role][listType] = [];
     }
+    // -----------------------------------------------------------------
     
     // Prevent duplicates
     if (!teamData[strategyKey].roles[role][listType].includes(newChamp)) {
         teamData[strategyKey].roles[role][listType].push(newChamp);
         saveData(); // Sends to Firebase! The UI will update automatically.
     }
-    inputEle.value = ""; // Clear the box
+    inputEle.value = ""; // Clear the input box
 };
 
 window.removeChamp = function(strategyKey, role, listType, champName) {
