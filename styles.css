@@ -473,3 +473,58 @@ h1 {
     color: #f0e6d2;
     line-height: 1.4;
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    /* 1. Shrink the header a bit to save screen space */
+    .team-logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+
+    /* 2. Stack the buttons and dropdown menus vertically */
+    .strat-management, .header-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-manage, .btn-edit, .strategy-selector select {
+        width: 100%; /* Make buttons full width for easy tapping */
+        margin-bottom: 5px;
+        box-sizing: border-box;
+    }
+
+    /* 3. Stack the Active Draft Panel (Flex and Locked lists) */
+    .active-draft-panel {
+        flex-direction: column;
+    }
+
+    /* Let the locked champions wrap to a second line instead of squishing */
+    .locked-team {
+        flex-wrap: wrap;
+        height: auto;
+        gap: 15px;
+        padding: 10px 0;
+    }
+
+    /* 4. The biggest change: Stack the 5 Draft Board columns vertically */
+    .draft-board {
+        flex-direction: column;
+    }
+
+    .role-card {
+        width: 100%; /* Take up the full screen width */
+        box-sizing: border-box;
+    }
+
+    /* 5. Make sure the Patch Notes popup fits on a phone screen */
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+        margin: 10px;
+    }
+}
