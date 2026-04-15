@@ -130,31 +130,29 @@ function loadStrategy() {
     const strategy = teamData[selectedKey];
     document.getElementById('strategy-desc').innerText = strategy.description || "Click here to add a description...";
 
-    // --- NEW: Calculate Flex Picks ---
+    // Calculate Flex Picks (Upgraded for Tier Objects)
     let allPicks = [];
     const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
     
     standardRoles.forEach(role => {
         if (strategy.roles && strategy.roles[role] && strategy.roles[role].picks) {
-            allPicks = allPicks.concat(strategy.roles[role].picks);
+            // Extract just the names, whether they are old strings or new Tier Objects
+            const namesOnly = strategy.roles[role].picks.map(c => typeof c === 'string' ? c : c.name);
+            allPicks = allPicks.concat(namesOnly);
         }
     });
 
-    // Find duplicates (champions that appear in more than 1 role)
     const flexChamps = allPicks.filter((item, index) => allPicks.indexOf(item) !== index);
-    const uniqueFlexChamps = [...new Set(flexChamps)]; // Remove triple duplicates
+    const uniqueFlexChamps = [...new Set(flexChamps)];
 
-    // Render Flex Options
     const flexContainer = document.getElementById('flex-picks-list');
     flexContainer.innerHTML = uniqueFlexChamps.map(champ => 
         `<img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" title="${champ} is a Flex!" style="border-color: #fe3c72;">`
     ).join('') || "<span style='color: #666; font-size: 12px;'>No flex picks yet.</span>";
 
-    // --- NEW: Render Locked Team ---
+    // Render Locked Team
     const lockedContainer = document.getElementById('locked-team');
     lockedContainer.innerHTML = "";
-    
-    // Ensure the locked object exists in Firebase
     if (!strategy.lockedTeam) strategy.lockedTeam = {};
 
     standardRoles.forEach(role => {
@@ -174,7 +172,7 @@ function loadStrategy() {
         }
     });
 
-    // --- Render The Main Board ---
+    // Render The Main Board
     const board = document.getElementById('draft-board');
     board.innerHTML = ""; 
     
@@ -184,20 +182,37 @@ function loadStrategy() {
     standardRoles.forEach(roleName => {
         const roleData = (strategy.roles && strategy.roles[roleName]) ? strategy.roles[roleName] : {};
         
-        let picksArray = roleData.picks || [];
+        // Copy the array so we can sort it safely
+        let picksArray = roleData.picks ? [...roleData.picks] : [];
         let bansArray = roleData.bans || [];
 
-        // Updated Picks with Lock Button
-        let picksHTML = picksArray.map(champ => `
+        // NEW: Automatically sort picks by Tier (S -> A -> B -> Old Data)
+        const tierOrder = { "S": 1, "A": 2, "B": 3, "": 4 };
+        picksArray.sort((a, b) => {
+            const tierA = typeof a === 'string' ? "" : a.tier;
+            const tierB = typeof b === 'string' ? "" : b.tier;
+            return tierOrder[tierA] - tierOrder[tierB];
+        });
+
+        // Generate HTML for Picks
+        let picksHTML = picksArray.map(champObj => {
+            // Handle backwards compatibility for old string data
+            let champName = typeof champObj === 'string' ? champObj : champObj.name;
+            let tier = typeof champObj === 'string' ? '' : champObj.tier;
+            
+            // Generate the Tier Badge if it exists
+            let tierHTML = tier ? `<span class="tier-tag tier-${tier}">${tier}</span>` : '';
+
+            return `
             <li>
-                <img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
-                ${champ}
+                <img class="champ-img" src="${getChampImageURL(champName)}" alt="${champName}" onerror="this.src='https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/0.jpg'"> 
+                ${tierHTML} ${champName}
                 <div class="champ-actions">
-                    <button class="btn-lock" title="Lock In" onclick="lockChamp('${selectedKey}', '${roleName}', '${champ}')">🔒</button>
-                    <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'picks', '${champ}')">❌</button>
+                    <button class="btn-lock" title="Lock In" onclick="lockChamp('${selectedKey}', '${roleName}', '${champName}')">🔒</button>
+                    <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'picks', '${champName}')">❌</button>
                 </div>
-            </li>
-        `).join('');
+            </li>`;
+        }).join('');
 
         let bansHTML = bansArray.map(champ => `
             <li>
@@ -206,17 +221,22 @@ function loadStrategy() {
                 <div class="champ-actions">
                     <button class="delete-btn" onclick="removeChamp('${selectedKey}', '${roleName}', 'bans', '${champ}')">❌</button>
                 </div>
-            </li>
-        `).join('');
+            </li>`).join('');
 
         const cardHTML = `
             <div class="role-card">
                 <h2>${roleName}</h2>
                 <div class="section-title">Preferred Picks</div>
                 <ul class="champ-list picks">${picksHTML}</ul>
+                
                 <div class="add-champ-form" style="display: ${isEditMode ? 'flex' : 'none'}">
+                    <select id="add-tier-${roleName}" class="tier-select">
+                        <option value="S">S</option>
+                        <option value="A" selected>A</option>
+                        <option value="B">B</option>
+                    </select>
                     <input type="text" list="champion-names" id="add-pick-${roleName}" placeholder="Add Pick...">
-                    <button onclick="addChamp('${selectedKey}', '${roleName}', 'picks', 'add-pick-${roleName}')">+</button>
+                    <button onclick="addChamp('${selectedKey}', '${roleName}', 'picks', 'add-pick-${roleName}', 'add-tier-${roleName}')">+</button>
                 </div>
 
                 <div class="section-title">Suggested Bans</div>
@@ -263,33 +283,48 @@ window.toggleEditMode = function() {
     loadStrategy(); 
 };
 
-window.addChamp = function(strategyKey, role, listType, inputId) {
+// Notice we added an optional tierId parameter to the end
+window.addChamp = function(strategyKey, role, listType, inputId, tierId = null) {
     const inputEle = document.getElementById(inputId);
     const newChamp = inputEle.value.trim();
     if (!newChamp) return; 
 
-    // --- THE FIX: Rebuild the data structure if Firebase deleted it ---
-    if (!teamData[strategyKey].roles) {
-        teamData[strategyKey].roles = {};
+    // Grab the tier if they are adding a Pick (Bans don't use tiers)
+    let tierValue = "A";
+    if (tierId) {
+        const tierEle = document.getElementById(tierId);
+        if (tierEle) tierValue = tierEle.value;
     }
-    if (!teamData[strategyKey].roles[role]) {
-        teamData[strategyKey].roles[role] = {};
-    }
-    if (!teamData[strategyKey].roles[role][listType]) {
-        teamData[strategyKey].roles[role][listType] = [];
-    }
-    // -----------------------------------------------------------------
+
+    if (!teamData[strategyKey].roles) teamData[strategyKey].roles = {};
+    if (!teamData[strategyKey].roles[role]) teamData[strategyKey].roles[role] = {};
+    if (!teamData[strategyKey].roles[role][listType]) teamData[strategyKey].roles[role][listType] = [];
     
-    // Prevent duplicates
-    if (!teamData[strategyKey].roles[role][listType].includes(newChamp)) {
-        teamData[strategyKey].roles[role][listType].push(newChamp);
-        saveData(); // Sends to Firebase! The UI will update automatically.
+    // Prevent duplicates (checking both old strings and new tier objects)
+    const exists = teamData[strategyKey].roles[role][listType].some(c => {
+        const cName = typeof c === 'string' ? c : c.name;
+        return cName === newChamp;
+    });
+
+    if (!exists) {
+        if (listType === 'picks') {
+            // Save as an object with a Tier!
+            teamData[strategyKey].roles[role][listType].push({ name: newChamp, tier: tierValue });
+        } else {
+            // Bans are still just saved as strings
+            teamData[strategyKey].roles[role][listType].push(newChamp);
+        }
+        saveData();
     }
-    inputEle.value = ""; // Clear the input box
+    inputEle.value = ""; 
 };
 
-window.removeChamp = function(strategyKey, role, listType, champName) {
-    teamData[strategyKey].roles[role][listType] = teamData[strategyKey].roles[role][listType].filter(champ => champ !== champName);
+window.removeChamp = function(strategyKey, role, listType, champNameToRemove) {
+    // Filter safely regardless of whether it's an old string or new Tier object
+    teamData[strategyKey].roles[role][listType] = teamData[strategyKey].roles[role][listType].filter(c => {
+        const cName = typeof c === 'string' ? c : c.name;
+        return cName !== champNameToRemove;
+    });
     saveData();
 };
 
