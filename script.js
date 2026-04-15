@@ -234,11 +234,11 @@ window.createNewStrategy = function() {
         name: stratName,
         description: "Click here to add a description...",
         roles: {
-            Top: { picks: [], bans: [] },
-            Jungle: { picks: [], bans: [] },
-            Mid: { picks: [], bans: [] },
-            ADC: { picks: [], bans: [] },
-            Support: { picks: [], bans: [] }
+            Top: { picks: ["Sett"], bans: ["Riven"] },
+            Jungle: { picks: ["Nocturne"], bans: ["Viego"] },
+            Mid: { picks: ["Aurora"], bans: ["Malzahar"] },
+            ADC: { picks: ["Yunara"], bans: ["Caitlyn"] },
+            Support: { picks: ["Alistar"], bans: ["Yuumi"] }
         }
     };
     saveData();
