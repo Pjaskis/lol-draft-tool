@@ -195,13 +195,29 @@ function loadStrategy() {
         });
 
         // Generate HTML for Picks
+        // Generate HTML for Picks
         let picksHTML = picksArray.map(champObj => {
             // Handle backwards compatibility for old string data
             let champName = typeof champObj === 'string' ? champObj : champObj.name;
             let tier = typeof champObj === 'string' ? '' : champObj.tier;
             
-            // Generate the Tier Badge if it exists
-            let tierHTML = tier ? `<span class="tier-tag tier-${tier}">${tier}</span>` : '';
+            let tierHTML = '';
+
+            // --- THE UPGRADE: Editable Tiers ---
+            if (isEditMode) {
+                // If in edit mode, show a dropdown pre-selected to their current tier
+                // If they don't have a tier (old data), default it to A visually
+                let activeTier = tier || 'A';
+                tierHTML = `
+                <select class="tier-edit-select tier-${activeTier}" onchange="updateTier('${selectedKey}', '${roleName}', '${champName}', this.value)">
+                    <option value="S" ${activeTier === 'S' ? 'selected' : ''}>S</option>
+                    <option value="A" ${activeTier === 'A' ? 'selected' : ''}>A</option>
+                    <option value="B" ${activeTier === 'B' ? 'selected' : ''}>B</option>
+                </select>`;
+            } else if (tier) {
+                // If not in edit mode, just show the normal static badge
+                tierHTML = `<span class="tier-tag tier-${tier}">${tier}</span>`;
+            }
 
             return `
             <li>
@@ -265,6 +281,24 @@ window.lockChamp = function(strategyKey, role, champName) {
         teamData[strategyKey].lockedTeam[role] = null;
     } else {
         teamData[strategyKey].lockedTeam[role] = champName;
+    }
+    
+    saveData(); // Push to Firebase immediately
+};
+
+// --- NEW: Update Existing Tier ---
+window.updateTier = function(strategyKey, role, champName, newTier) {
+    let picks = teamData[strategyKey].roles[role].picks;
+    
+    // Find the champion in the array
+    for (let i = 0; i < picks.length; i++) {
+        let currentName = typeof picks[i] === 'string' ? picks[i] : picks[i].name;
+        
+        if (currentName === champName) {
+            // Upgrade them to the new tier object (this also fixes old string data automatically!)
+            picks[i] = { name: champName, tier: newTier };
+            break;
+        }
     }
     
     saveData(); // Push to Firebase immediately

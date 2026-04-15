@@ -383,3 +383,22 @@ h1 {
     cursor: pointer;
     font-family: 'Arial Black', sans-serif; /* Match the dropdown font too */
 }
+
+/* --- NEW: Editable Tier Dropdown --- */
+.tier-edit-select {
+    font-family: 'Arial Black', 'Segoe UI Black', Impact, sans-serif;
+    font-size: 13px;
+    color: #0a1428;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 2px;
+    margin-right: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    outline: none;
+    text-align: center;
+    /* Removes the default dropdown arrow to keep it looking like a badge */
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
