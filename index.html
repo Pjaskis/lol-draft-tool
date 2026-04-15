@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL Team Draft Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>⚔️ Rift Draft Planner</h1>
+            
+            <div class="strat-management">
+                <button class="btn-manage new" onclick="createNewStrategy()">➕ New Strategy</button>
+                <button class="btn-manage delete" onclick="deleteCurrentStrategy()">🗑️ Delete Strategy</button>
+            </div>
+
+            <div class="header-controls">
+                <div class="strategy-selector">
+                    <label for="strategy-dropdown">Current Strategy: </label>
+                    <select id="strategy-dropdown" onchange="loadStrategy()"></select>
+                </div>
+                <button id="edit-btn" class="btn-edit" onclick="toggleEditMode()">✏️ Edit Draft</button>
+            </div>
+            
+            <p id="strategy-desc" class="desc-text" title="Click to edit description" onclick="editDescription()"></p>
+        </header>
+
+        <div class="draft-board" id="draft-board">
+            </div>
+
+    </div>
+
+    <datalist id="champion-names"></datalist>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
