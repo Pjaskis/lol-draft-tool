@@ -256,19 +256,19 @@ h1 {
     margin-bottom: 25px;
 }
 
-.flex-picks-container, .locked-team-container {
+.flex-picks-container, .contested-picks-container, .locked-team-container {
     background-color: #1e2328;
     border: 1px solid #c8aa6e;
     border-radius: 8px;
     padding: 15px;
 }
 
-.flex-picks-container {
+.flex-picks-container, .contested-picks-container {
     flex: 1;
 }
 
 .locked-team-container {
-    flex: 3;
+    flex: 2;
 }
 
 .active-draft-panel h3 {
@@ -507,11 +507,10 @@ h1 {
     }
 
     /* Let the locked champions wrap to a second line instead of squishing */
-    .locked-team {
-        flex-wrap: wrap;
-        height: auto;
-        gap: 15px;
-        padding: 10px 0;
+    .flex-picks-container, .contested-picks-container, .locked-team-container {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
     }
 
     /* 4. The biggest change: Stack the 5 Draft Board columns vertically */

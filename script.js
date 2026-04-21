@@ -130,24 +130,44 @@ function loadStrategy() {
     const strategy = teamData[selectedKey];
     document.getElementById('strategy-desc').innerText = strategy.description || "Click here to add a description...";
 
-    // Calculate Flex Picks
+    // --- UPGRADED: Calculate Flex AND Contested Picks ---
     let allPicks = [];
+    let allBans = [];
     const standardRoles = ["Top", "Jungle", "Mid", "ADC", "Support"];
     
     standardRoles.forEach(role => {
-        if (strategy.roles && strategy.roles[role] && strategy.roles[role].picks) {
-            const namesOnly = strategy.roles[role].picks.map(c => typeof c === 'string' ? c : c.name);
-            allPicks = allPicks.concat(namesOnly);
+        if (strategy.roles && strategy.roles[role]) {
+            // Gather all picks
+            if (strategy.roles[role].picks) {
+                const namesOnly = strategy.roles[role].picks.map(c => typeof c === 'string' ? c : c.name);
+                allPicks = allPicks.concat(namesOnly);
+            }
+            // Gather all bans
+            if (strategy.roles[role].bans) {
+                allBans = allBans.concat(strategy.roles[role].bans);
+            }
         }
     });
 
+    // 1. Flex Champs (In Picks array more than once)
     const flexChamps = allPicks.filter((item, index) => allPicks.indexOf(item) !== index);
     const uniqueFlexChamps = [...new Set(flexChamps)];
 
+    // 2. Contested Champs (Appears in BOTH Picks and Bans)
+    const contestedChamps = allPicks.filter(champ => allBans.includes(champ));
+    const uniqueContestedChamps = [...new Set(contestedChamps)];
+
+    // Render Flex Options
     const flexContainer = document.getElementById('flex-picks-list');
     flexContainer.innerHTML = uniqueFlexChamps.map(champ => 
-        `<img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" title="${champ} is a Flex!" style="border-color: #fe3c72;">`
-    ).join('') || "<span style='color: #666; font-size: 12px;'>No flex picks yet.</span>";
+        `<img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" title="${champ} is a Flex!" style="border-color: #0ac8b9;">`
+    ).join('') || "<span style='color: #666; font-size: 12px;'>No flex picks.</span>";
+
+    // Render Contested Options (With an orange warning border!)
+    const contestedContainer = document.getElementById('contested-picks-list');
+    contestedContainer.innerHTML = uniqueContestedChamps.map(champ => 
+        `<img class="champ-img" src="${getChampImageURL(champ)}" alt="${champ}" title="R1 Pick or Ban!" style="border-color: #ffb443; box-shadow: 0 0 10px rgba(255, 180, 67, 0.4);">`
+    ).join('') || "<span style='color: #666; font-size: 12px;'>No priority conflicts.</span>";
 
     // Render Locked Team
     const lockedContainer = document.getElementById('locked-team');
